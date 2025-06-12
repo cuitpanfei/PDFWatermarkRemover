@@ -4,8 +4,9 @@
 name: Maven Package
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - master  # 指定监听的分支，例如 main 或 master
 
 jobs:
   build:

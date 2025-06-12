@@ -1,0 +1,45 @@
+name: Build JAR and Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*' # 当推送类似 v1.0.0 的 tag 时触发发布流程
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn clean package
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          VERSION=${{ github.ref_name }}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Upload JAR to GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            This release contains the built JAR file.
+          draft: false
+          prerelease: false
+          files: |
+            target/*.jar
